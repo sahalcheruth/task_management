@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow">
+        <div class="card-header bg-info text-white">
+          <h4 class="mb-0">Submit Completion Report for "{{ task.title }}"</h4>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            {{ form|crispy }}
+
+            <div class="d-grid mt-4">
+              <button type="submit" class="btn btn-primary">Submit Report</button>
+            </div>
+          </form>
+
+          <div class="mt-3 text-center">
+            <a href="{% url 'user_tasks' %}" class="btn btn-outline-secondary">Back to My Tasks</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
