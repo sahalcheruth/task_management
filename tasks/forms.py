@@ -7,6 +7,11 @@ from .models import Task
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Field
 
+
+
+
+
+
 class TaskForm(forms.ModelForm):
     class Meta:
         model = Task
@@ -18,10 +23,6 @@ class TaskForm(forms.ModelForm):
             'assigned_to': forms.Select(attrs={'class': 'form-control'}),
         }
 
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit
-from django import forms
-from .models import Task
 
 class CompletionReportForm(forms.ModelForm):
     class Meta:

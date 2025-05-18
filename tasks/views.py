@@ -1,21 +1,35 @@
-from django.shortcuts import render
-
-# Create your views here.
-
-
-
-from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-
-
-
+from django.contrib.auth import authenticate, login
 
 from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
 
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
 from django.contrib import messages
+
+from django.contrib.auth import get_user_model
+from django.contrib.auth import login
+
+from rest_framework import viewsets, permissions
+from .models import CustomUser, Task, TaskReport, AdminUserAssignment
+from .serializers import *
+from rest_framework.response import Response
+from rest_framework.decorators import action
+
+from django.contrib.auth.decorators import login_required, user_passes_test
+from .models import Task
+from .forms import TaskForm, CompletionReportForm
+
+
+from django.contrib.auth import authenticate, login
+from django.shortcuts import render, redirect
+
+from django.shortcuts import render, redirect, get_object_or_404
+
+from .models import Task, CustomUser
+from django.shortcuts import get_object_or_404, redirect
+
+from django.http import HttpResponseForbidden
+
+
 
 def custom_login(request):
     if request.method == 'POST':
@@ -39,9 +53,6 @@ def custom_login(request):
 
     return render(request, 'tasks/login.html')
 
-from django.contrib.auth import get_user_model
-from django.contrib.auth import login
-from django.shortcuts import render, redirect
 
 User = get_user_model()
 
@@ -71,13 +82,6 @@ def custom_logout(request):
 
 
 
-
-
-from rest_framework import viewsets, permissions
-from .models import CustomUser, Task, TaskReport, AdminUserAssignment
-from .serializers import *
-from rest_framework.response import Response
-from rest_framework.decorators import action
 
 class IsSuperAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
@@ -148,10 +152,6 @@ def user_required(view_func):
 
 # tasks/views.py
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required, user_passes_test
-from .models import Task, CustomUser
-from .forms import TaskForm, CompletionReportForm
 
 def superadmin_required(view_func):
     return user_passes_test(lambda u: u.is_authenticated and u.role == 'superadmin')(view_func)
@@ -194,7 +194,7 @@ def admin_panel(request):
     elif user.role == 'admin':
         tasks = Task.objects.all()
         users = CustomUser.objects.all()
-        # Apply admin filtering logic here if needed
+       
     else:
         return redirect('user_tasks')
 
@@ -243,10 +243,6 @@ def submit_report(request, task_id):
     return render(request, 'tasks/submit_report.html', {'form': form, 'task': task})
 
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required, user_passes_test
-from .models import Task
-from .forms import TaskForm, CompletionReportForm
 
 # Check if user is admin or superuser
 def is_admin(user):
@@ -331,8 +327,8 @@ def task_complete(request, pk):
         form = CompletionReportForm(instance=task)
     return render(request, 'tasks/task_complete.html', {'form': form, 'task': task})
 
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
+
+
 
 def user_login(request):
     if request.method == 'POST':
@@ -348,8 +344,6 @@ def user_login(request):
 
 
 
-from django.shortcuts import redirect
-from django.contrib.auth.decorators import login_required
 
 @login_required
 def home_redirect(request):
@@ -378,12 +372,6 @@ def task_update(request, pk):
     return render(request, 'tasks/task_form.html', {'form': form})
 
 
-
-from django.shortcuts import get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseForbidden
-from .models import Task
-
 @login_required
 def delete_task(request, task_id):
     if request.user.role != 'superadmin':
@@ -393,7 +381,7 @@ def delete_task(request, task_id):
 
     if request.method == "POST":
         task.delete()
-        return redirect('admin_panel')  # Change this to the correct name of your admin panel URL
+        return redirect('admin_panel')  
 
     return HttpResponseForbidden("Invalid request method.")
 
@@ -423,57 +411,72 @@ def task_update_inline(request, pk):
 
 
 
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect
-from .models import CustomUser
-
 @login_required
 def promote_to_admin(request, user_id):
     if request.user.role != 'superadmin':
-        return redirect('admin_panel')  # or raise PermissionDenied
+        return redirect('manage-usersl')  # or raise PermissionDenied
 
     user = get_object_or_404(CustomUser, id=user_id)
     user.role = 'admin'
     user.save()
-    return redirect('admin_panel')
+    return redirect('manage-users')
 
 
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect
-from .models import CustomUser
 
 @login_required
 def downgrade_to_user(request, user_id):
     if request.user.role != 'superadmin':
-        return redirect('admin_panel')  # or raise PermissionDenied
+        return redirect('manage-users')  # or raise PermissionDenied
 
     user = get_object_or_404(CustomUser, id=user_id)
     if user.role == 'admin':  # Only downgrade admins
         user.role = 'user'
         user.save()
-    return redirect('admin_panel')
+    return redirect('manage-users')
 
 
 
 
 
 #new
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, get_object_or_404
-from django.contrib import messages
 
 @login_required
 def delete_user(request, user_id):
     if request.user.role != 'superadmin':
         messages.error(request, "You do not have permission to delete users.")
-        return redirect('admin_panel')
+        return redirect('manage-users')
 
     user_to_delete = get_object_or_404(CustomUser, id=user_id)
 
     if user_to_delete == request.user:
         messages.error(request, "You cannot delete yourself.")
-        return redirect('admin_panel')
+        return redirect('manage-users')
 
     user_to_delete.delete()
     messages.success(request, f"User {user_to_delete.username} has been deleted.")
-    return redirect('admin_panel')
+    return redirect('manage-users')
+
+
+
+
+# @login_required
+# def manage(request):
+#     if request.user.role != 'superadmin':
+#       messages.error(request, "You do not have permission to delete users.")
+#       return render(request, 'tasks/manage_users.html')
+    
+
+
+@login_required
+def manage(request):
+    # Get the current user's role
+    role = request.user.role
+
+    # Get all users
+    users = User.objects.all()
+
+    # Render the template with context
+    return render(request, 'tasks/manage_users.html', {
+        'role': role,
+        'users': users
+    })

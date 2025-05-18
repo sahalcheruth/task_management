@@ -22,6 +22,7 @@ urlpatterns = [
     path('promote/<int:user_id>/', views.promote_to_admin, name='promote_to_admin'),
     path('downgrade/<int:user_id>/', views.downgrade_to_user, name='downgrade_to_user'),
     path('delete-user/<int:user_id>/', views.delete_user, name='delete_user'),
+    path('manage-users/', views.manage, name='manage-users'),
    
 ]
 
